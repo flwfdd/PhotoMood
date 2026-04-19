@@ -9,7 +9,7 @@ export function useExifData() {
   const extractExif = useCallback(async (file: File, locale: string) => {
     const data = await parseExif(file)
     if (data && data.latitude != null && data.longitude != null) {
-      data.locationName = resolveLocation(data.latitude, data.longitude, locale)
+      data.locationName = await resolveLocation(data.latitude, data.longitude, locale)
     }
     setExifData(data)
     return data

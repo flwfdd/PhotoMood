@@ -1,44 +1,49 @@
 import type { TemplateDefinition } from '../types/template'
 
-export const minimal: TemplateDefinition = {
-  id: 'minimal',
-  nameKey: 'templates.minimal.name',
-  descriptionKey: 'templates.minimal.description',
-  thumbnail: '',
+export const minimalTemplate: TemplateDefinition = {
+  id: 'builtin-minimal',
+  name: { en: 'Minimal', zh: '极简' },
+  builtin: true,
+  version: 1,
   layout: {
+    aspectRatio: { mode: 'original' },
     padding: { top: 0, right: 0, bottom: 0.06, left: 0 },
-    frameColorMode: 'auto',
-    frameCornerRadius: 0,
-    textAreas: [
-      {
-        id: 'left-info',
-        x: 0.03,
-        y: 0.94,
-        width: 0.5,
-        height: 0.05,
-        align: 'left',
-        verticalAlign: 'middle',
-      },
-      {
-        id: 'right-info',
-        x: 0.47,
-        y: 0.94,
-        width: 0.5,
-        height: 0.05,
-        align: 'right',
-        verticalAlign: 'middle',
-      },
-    ],
+    imageCornerRadius: 0,
+    imageOpacity: 1,
+    frameColor: { type: 'fixed', value: '#1C1B1A', opacity: 1 },
   },
-  defaultExifFields: [
-    { field: 'model', labelKey: 'exif.camera', textAreaId: 'left-info' },
-    { field: 'dateTimeOriginal', labelKey: 'exif.date', textAreaId: 'right-info' },
+  elements: [
+    {
+      type: 'text',
+      id: 'minimal-camera',
+      content: '{{exif.model}}',
+      style: {
+        fontFamily: 'JetBrains Mono',
+        fontSize: 0.018,
+        fontWeight: 400,
+        color: { type: 'fixed', value: '#F4F3EE', opacity: 0.7 },
+        letterSpacing: 0.08,
+        lineHeight: 1.4,
+      },
+      position: { x: -0.35, y: 0.47 },
+      align: 'left',
+      verticalAlign: 'middle',
+    },
+    {
+      type: 'text',
+      id: 'minimal-date',
+      content: '{{exif.date}}',
+      style: {
+        fontFamily: 'JetBrains Mono',
+        fontSize: 0.018,
+        fontWeight: 400,
+        color: { type: 'fixed', value: '#F4F3EE', opacity: 0.7 },
+        letterSpacing: 0.08,
+        lineHeight: 1.4,
+      },
+      position: { x: 0.35, y: 0.47 },
+      align: 'right',
+      verticalAlign: 'middle',
+    },
   ],
-  defaultTextStyle: {
-    fontFamily: 'JetBrains Mono',
-    fontSize: 11,
-    fontWeight: 400,
-    color: 'auto',
-    letterSpacing: 0.5,
-  },
 }

@@ -14,53 +14,122 @@
   },
   "panels": {
     "template": "模板",
-    "color": "颜色",
+    "layout": "边框",
     "text": "文字",
-    "crop": "裁切",
-    "exif": "拍摄信息"
+    "export": "导出"
   },
-  "templates": {
-    "polaroid": { "name": "拍立得", "description": "经典即时相片风格" },
-    "classic": { "name": "经典", "description": "四周等宽边框" },
-    "half": { "name": "对半", "description": "上方色块，下方照片" },
-    "minimal": { "name": "极简", "description": "底部细信息条" },
-    "clean": { "name": "纯净", "description": "文字叠加在照片上" }
+  "template": {
+    "builtin": "内置模板",
+    "userTemplates": "我的模板",
+    "saveAs": "另存为模板",
+    "import": "导入模板",
+    "importHint": "粘贴分享链接或模板字符串。",
+    "importPlaceholder": "粘贴分享链接或模板字符串...",
+    "validate": "校验",
+    "confirmImport": "确认导入",
+    "importError": "模板格式无效",
+    "importSuccess": "模板导入成功！",
+    "exportCopied": "模板已复制到剪贴板！",
+    "shareLinkCopied": "分享链接已复制！",
+    "shareCurrentLink": "分享当前模板",
+    "saveSuccess": "模板保存成功！",
+    "namePlaceholder": "模板名称...",
+    "elements": "个元素"
   },
   "editor": {
+    "aspectRatio": "宽高比",
+    "aspectOriginal": "原始比例",
+    "aspectFixed": "固定比例",
+    "padding": "留白",
+    "paddingTop": "上",
+    "paddingRight": "右",
+    "paddingBottom": "下",
+    "paddingLeft": "左",
+    "paddingLock": "锁定四边一致",
+    "paddingUnlock": "解锁四边",
+    "imageSettings": "图片",
+    "imageCornerRadius": "图片圆角",
+    "cornerRadius": "圆角",
     "frameColor": "边框颜色",
-    "textColor": "文字颜色",
-    "fontSize": "字体大小",
+    "cropButton": "裁切",
+    "cropTitle": "裁切图片",
+    "cropApply": "应用",
+    "cropConfirm": "确认",
+    "imageOpacity": "图片透明度",
+    "colorFixed": "固定色",
+    "colorAuto": "自动取色",
+    "colorImageSource": "图片颜色",
+    "colorSwatches": "语义色",
+    "colorPreview": "预览",
+    "opacity": "透明度",
+    "textContent": "内容",
+    "insertExif": "插入信息",
     "fontFamily": "字体",
     "fontWeight": "字重",
-    "customText": "自定义文字",
-    "addText": "添加文字",
-    "palette": "调色板",
-    "custom": "自定义颜色"
+    "fontSize": "字号",
+    "textColor": "颜色",
+    "textPosition": "位置",
+    "positionX": "水平",
+    "positionY": "垂直",
+    "blendMode": {
+      "normal": "正常",
+      "multiply": "正片叠底",
+      "screen": "滤色",
+      "soft-light": "柔光",
+      "overlay": "叠加",
+      "difference": "差值"
+    },
+    "swatchRole": {
+      "Vibrant": "鲜艳",
+      "Muted": "柔和",
+      "DarkVibrant": "深色鲜艳",
+      "DarkMuted": "深色柔和",
+      "LightVibrant": "浅色鲜艳",
+      "LightMuted": "浅色柔和"
+    },
+    "textAlign": "对齐",
+    "verticalAlign": "垂直",
+    "letterSpacing": "字间距",
+    "lineHeight": "行高",
+    "addText": "+ 添加文字元素",
+    "emptyText": "（空）",
+    "contrast": {
+      "good": "对比度佳",
+      "fair": "对比度一般",
+      "poor": "对比度差"
+    },
+    "align": {
+      "left": "左",
+      "center": "中",
+      "right": "右"
+    },
+    "valign": {
+      "top": "上",
+      "middle": "中",
+      "bottom": "下"
+    }
   },
   "exif": {
-    "camera": "相机",
-    "lens": "镜头",
-    "focalLength": "焦距",
-    "aperture": "光圈",
-    "shutterSpeed": "快门",
-    "iso": "ISO",
-    "date": "日期",
-    "location": "位置",
     "noData": "未检测到拍摄信息，可手动添加文字",
-    "unknown": "未知",
-    "show": "显示",
-    "hide": "隐藏"
+    "noValue": "（无数据）",
+    "groups": {
+      "camera": "相机信息",
+      "params": "拍摄参数",
+      "datetime": "日期时间",
+      "location": "位置",
+      "other": "其他"
+    }
   },
   "export": {
-    "button": "导出",
+    "button": "导出图片",
     "success": "照片保存成功！",
-    "processing": "正在生成图片..."
+    "processing": "正在生成图片...",
+    "formatHint": "输出格式：JPEG",
+    "qualityHint": "质量"
   },
-  "crop": {
-    "title": "裁切照片",
-    "freeform": "自由裁切",
-    "confirm": "确认",
-    "cancel": "取消"
+  "common": {
+    "cancel": "取消",
+    "save": "保存"
   },
   "theme": {
     "light": "浅色",
@@ -70,9 +139,5 @@
   "language": {
     "en": "English",
     "zh": "中文"
-  },
-  "errors": {
-    "browserNotSupported": "请使用 Chrome、Firefox、Safari 或 Edge 最新版本。",
-    "fontLoadFailed": "字体加载失败，已使用系统默认字体。"
   }
 }

@@ -1,0 +1,65 @@
+import type { TemplateDefinition } from '../types/template'
+
+export const darkProTemplate: TemplateDefinition = {
+  id: 'builtin-dark-pro',
+  name: { en: 'Dark Pro', zh: '暗调专业' },
+  builtin: true,
+  version: 1,
+  layout: {
+    aspectRatio: { mode: 'original' },
+    padding: { top: 0.05, right: 0.05, bottom: 0.14, left: 0.05 },
+    imageCornerRadius: 0.01,
+    imageOpacity: 1,
+    frameColor: { type: 'fixed', value: '#0D0D0D', opacity: 1 },
+  },
+  elements: [
+    {
+      type: 'text',
+      id: 'dark-brand',
+      content: '{{exif.make}}',
+      style: {
+        fontFamily: 'Instrument Sans',
+        fontSize: 0.014,
+        fontWeight: 600,
+        color: { type: 'fixed', value: '#C15F3C', opacity: 1 },
+        letterSpacing: 0.15,
+        lineHeight: 1.4,
+      },
+      position: { x: -0.35, y: 0.39 },
+      align: 'left',
+      verticalAlign: 'middle',
+    },
+    {
+      type: 'text',
+      id: 'dark-model',
+      content: '{{exif.model}}  |  {{exif.focalLength}}  {{exif.fNumber}}  {{exif.shutterSpeed}}  {{exif.iso}}',
+      style: {
+        fontFamily: 'JetBrains Mono',
+        fontSize: 0.02,
+        fontWeight: 400,
+        color: { type: 'fixed', value: '#F4F3EE', opacity: 0.8 },
+        letterSpacing: 0.04,
+        lineHeight: 1.4,
+      },
+      position: { x: -0.35, y: 0.43 },
+      align: 'left',
+      verticalAlign: 'middle',
+    },
+    {
+      type: 'text',
+      id: 'dark-date-location',
+      content: '{{exif.date}}  {{exif.locationName}}',
+      style: {
+        fontFamily: 'JetBrains Mono',
+        fontSize: 0.016,
+        fontWeight: 400,
+        color: { type: 'fixed', value: '#F4F3EE', opacity: 0.45 },
+        letterSpacing: 0.04,
+        lineHeight: 1.4,
+      },
+      position: { x: 0.35, y: 0.43 },
+      align: 'right',
+      verticalAlign: 'middle',
+    },
+  ],
+}

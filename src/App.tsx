@@ -1,4 +1,4 @@
-import { useRef, useCallback, useEffect, useState } from 'react'
+import { useRef, useCallback, useEffect, useMemo, useState } from 'react'
 import { Toaster } from 'sonner'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
@@ -12,6 +12,7 @@ import { UploadArea } from './components/common/UploadArea'
 import { CanvasPreview } from './components/canvas/CanvasPreview'
 import { useExifData } from './hooks/useExifData'
 import { useColorPalette } from './hooks/useColorPalette'
+import { getTemplateFromUrlHash } from './lib/template-share'
 import type Konva from 'konva'
 
 function EditorApp() {
@@ -19,18 +20,71 @@ function EditorApp() {
   const { extractExif } = useExifData()
   const { extractColors } = useColorPalette()
   const { i18n } = useTranslation()
+  const extractionCrop = state.currentTemplate.layout.crop
+  const extractionAspectRatio = state.currentTemplate.layout.aspectRatio
+  const colorExtractionLayout = useMemo(() => ({
+    crop: extractionCrop
+      ? { ...extractionCrop }
+      : null,
+    aspectRatio: extractionAspectRatio.ratio
+      ? {
+        ...extractionAspectRatio,
+        ratio: [...extractionAspectRatio.ratio] as [number, number],
+      }
+      : { ...extractionAspectRatio },
+  }), [extractionCrop, extractionAspectRatio])
   const stageRef = useRef<Konva.Stage | null>(null)
   const canvasContainerRef = useRef<HTMLDivElement>(null)
   const [containerSize, setContainerSize] = useState({ width: 0, height: 0 })
   const [originalFilename, setOriginalFilename] = useState('photo')
   const [isMobile, setIsMobile] = useState(false)
+  const [mobileHeights, setMobileHeights] = useState({ toolbar: 57, drawer: 0 })
 
   useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 768)
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768)
+    }
     checkMobile()
     window.addEventListener('resize', checkMobile)
     return () => window.removeEventListener('resize', checkMobile)
   }, [])
+
+  useEffect(() => {
+    const tpl = getTemplateFromUrlHash()
+    if (tpl) {
+      dispatch({ type: 'SET_TEMPLATE', payload: tpl })
+      window.history.replaceState(null, '', window.location.pathname)
+    }
+  }, [dispatch])
+
+  useEffect(() => {
+    if (!state.originalImage) return
+
+    const controller = new AbortController()
+    extractColors(state.originalImage, {
+      layout: colorExtractionLayout,
+      cropFocus: state.cropFocus,
+      signal: controller.signal,
+    })
+      .then((colorResult) => {
+        if (!controller.signal.aborted) {
+          dispatch({ type: 'SET_COLOR_PALETTE', payload: colorResult })
+        }
+      })
+      .catch((error) => {
+        if (!(error instanceof DOMException && error.name === 'AbortError')) {
+          console.error('Failed to extract colors', error)
+        }
+      })
+
+    return () => controller.abort()
+  }, [
+    dispatch,
+    colorExtractionLayout,
+    extractColors,
+    state.originalImage,
+    state.cropFocus,
+  ])
 
   useEffect(() => {
     const el = canvasContainerRef.current
@@ -38,56 +92,34 @@ function EditorApp() {
     const obs = new ResizeObserver((entries) => {
       const entry = entries[0]
       if (entry) {
-        setContainerSize({
-          width: entry.contentRect.width,
-          height: entry.contentRect.height,
-        })
+        setContainerSize({ width: entry.contentRect.width, height: entry.contentRect.height })
       }
     })
     obs.observe(el)
     return () => obs.disconnect()
   }, [])
 
-  const handleUpload = useCallback(async (file: File, image: HTMLImageElement) => {
+  const handleUpload = useCallback(async (file: File, originalFile: File, image: HTMLImageElement) => {
     setOriginalFilename(file.name)
     dispatch({
       type: 'SET_IMAGE',
-      payload: {
-        original: image,
-        size: { width: image.naturalWidth, height: image.naturalHeight },
-      },
+      payload: { original: image, size: { width: image.naturalWidth, height: image.naturalHeight } },
     })
 
-    const [exifResult, colorResult] = await Promise.all([
-      extractExif(file, i18n.language),
-      extractColors(image),
-    ])
-
-    if (exifResult) {
-      dispatch({ type: 'SET_EXIF', payload: exifResult })
-    }
-    if (colorResult) {
-      dispatch({ type: 'SET_COLOR_PALETTE', payload: colorResult })
-    }
-  }, [dispatch, extractExif, extractColors, i18n.language])
+    const exifResult = await extractExif(originalFile, i18n.language)
+    if (exifResult) dispatch({ type: 'SET_EXIF', payload: exifResult })
+  }, [dispatch, extractExif, i18n.language])
 
   const hasImage = !!state.originalImage
+  const isMobilePanelOpen = isMobile && !!state.activePanel
+  const mobileDrawerHeight = isMobilePanelOpen ? mobileHeights.drawer : 0
+  const mobileOccludedHeight = isMobile && hasImage && isMobilePanelOpen ? mobileDrawerHeight : 0
 
   return (
-    <div style={{
-      display: 'flex',
-      flexDirection: 'column',
-      minHeight: '100dvh',
-      backgroundColor: 'var(--bg-base)',
-    }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100dvh', overflow: 'hidden', backgroundColor: 'var(--bg-base)' }}>
       <Header stageRef={stageRef} originalFilename={originalFilename} />
 
-      <div style={{
-        flex: 1,
-        display: 'flex',
-        flexDirection: isMobile ? 'column' : 'row',
-        overflow: 'hidden',
-      }}>
+      <div style={{ flex: 1, display: 'flex', flexDirection: isMobile ? 'column' : 'row', overflow: 'hidden', minHeight: 0 }}>
         <main
           ref={canvasContainerRef}
           style={{
@@ -96,8 +128,9 @@ function EditorApp() {
             alignItems: 'center',
             justifyContent: 'center',
             overflow: 'hidden',
-            padding: hasImage ? '16px' : '0',
-            minHeight: isMobile ? '50vh' : 'auto',
+            paddingLeft: hasImage ? 16 : 0,
+            paddingRight: hasImage ? 16 : 0,
+            minHeight: 0,
           }}
         >
           <AnimatePresence mode="wait">
@@ -107,19 +140,24 @@ function EditorApp() {
               <motion.div
                 key="canvas"
                 initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3, ease: [0.25, 0.1, 0.25, 1] }}
+                animate={{
+                  opacity: 1,
+                  y: 0,
+                  height: hasImage && isMobile ? `calc(100% - ${mobileOccludedHeight}px)` : '100%',
+                  marginBottom: hasImage && isMobile ? mobileOccludedHeight : 0,
+                }}
+                transition={{ type: 'spring', stiffness: 300, damping: 30 }}
                 style={{
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   width: '100%',
-                  height: '100%',
+                  minHeight: 0,
                 }}
               >
                 <CanvasPreview
                   containerWidth={containerSize.width - 32}
-                  containerHeight={containerSize.height - 32}
+                  containerHeight={isMobile ? containerSize.height - mobileOccludedHeight : containerSize.height - 32}
                   stageRef={stageRef}
                 />
               </motion.div>
@@ -127,8 +165,14 @@ function EditorApp() {
           </AnimatePresence>
         </main>
 
-        {hasImage && !isMobile && <Sidebar />}
-        {hasImage && isMobile && <MobileToolbar />}
+        {hasImage && !isMobile && <Sidebar stageRef={stageRef} originalFilename={originalFilename} />}
+        {hasImage && isMobile && (
+          <MobileToolbar
+            stageRef={stageRef}
+            originalFilename={originalFilename}
+            onHeightsChange={setMobileHeights}
+          />
+        )}
       </div>
 
       <Toaster

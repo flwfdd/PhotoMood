@@ -6,6 +6,7 @@ const MAX_FILE_SIZE = 30 * 1024 * 1024
 
 export interface UploadedImage {
   file: File
+  originalFile: File
   image: HTMLImageElement
   objectUrl: string
 }
@@ -28,6 +29,7 @@ export function useImageUpload() {
 
     setIsUploading(true)
     try {
+      const originalFile = rawFile
       let file = rawFile
       if (isHeicFile(rawFile)) {
         toast.info('upload.converting')
@@ -51,7 +53,7 @@ export function useImageUpload() {
       }
 
       const objectUrl = URL.createObjectURL(file)
-      return { file, image: finalImg, objectUrl }
+      return { file, originalFile, image: finalImg, objectUrl }
     } catch {
       toast.error('upload.error.unsupported')
       return null

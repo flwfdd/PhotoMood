@@ -14,53 +14,122 @@
   },
   "panels": {
     "template": "Templates",
-    "color": "Colors",
+    "layout": "Frame",
     "text": "Text",
-    "crop": "Crop",
-    "exif": "Photo Info"
+    "export": "Export"
   },
-  "templates": {
-    "polaroid": { "name": "Polaroid", "description": "Classic instant photo style" },
-    "classic": { "name": "Classic", "description": "Even border on all sides" },
-    "half": { "name": "Half", "description": "Color block above, photo below" },
-    "minimal": { "name": "Minimal", "description": "Clean bottom info bar" },
-    "clean": { "name": "Clean", "description": "Text overlay on photo" }
+  "template": {
+    "builtin": "Built-in Templates",
+    "userTemplates": "My Templates",
+    "saveAs": "Save as Template",
+    "import": "Import Template",
+    "importHint": "Paste a shared link or template string.",
+    "importPlaceholder": "Paste a shared link or template string...",
+    "validate": "Validate",
+    "confirmImport": "Confirm Import",
+    "importError": "Invalid template format",
+    "importSuccess": "Template imported successfully!",
+    "exportCopied": "Template copied to clipboard!",
+    "shareLinkCopied": "Share link copied!",
+    "shareCurrentLink": "Share Current Template",
+    "saveSuccess": "Template saved!",
+    "namePlaceholder": "Template name...",
+    "elements": "elements"
   },
   "editor": {
+    "aspectRatio": "Aspect Ratio",
+    "aspectOriginal": "Original",
+    "aspectFixed": "Fixed",
+    "padding": "Padding",
+    "paddingTop": "Top",
+    "paddingRight": "Right",
+    "paddingBottom": "Bottom",
+    "paddingLeft": "Left",
+    "paddingLock": "Lock all sides",
+    "paddingUnlock": "Unlock sides",
+    "imageSettings": "Image",
+    "imageCornerRadius": "Image Corner Radius",
+    "cornerRadius": "Corner Radius",
     "frameColor": "Frame Color",
-    "textColor": "Text Color",
-    "fontSize": "Font Size",
+    "cropButton": "Crop",
+    "cropTitle": "Crop Image",
+    "cropApply": "Apply",
+    "cropConfirm": "Confirm",
+    "imageOpacity": "Image Opacity",
+    "colorFixed": "Fixed",
+    "colorAuto": "Auto",
+    "colorImageSource": "Image Colors",
+    "colorSwatches": "Semantic Colors",
+    "colorPreview": "Preview",
+    "opacity": "Opacity",
+    "textContent": "Content",
+    "insertExif": "Insert Info",
     "fontFamily": "Font",
     "fontWeight": "Weight",
-    "customText": "Custom Text",
-    "addText": "Add Text",
-    "palette": "Color Palette",
-    "custom": "Custom Color"
+    "fontSize": "Size",
+    "textColor": "Color",
+    "textPosition": "Position",
+    "positionX": "Horizontal",
+    "positionY": "Vertical",
+    "blendMode": {
+      "normal": "Normal",
+      "multiply": "Multiply",
+      "screen": "Screen",
+      "soft-light": "Soft Light",
+      "overlay": "Overlay",
+      "difference": "Difference"
+    },
+    "swatchRole": {
+      "Vibrant": "Vibrant",
+      "Muted": "Muted",
+      "DarkVibrant": "Dark Vibrant",
+      "DarkMuted": "Dark Muted",
+      "LightVibrant": "Light Vibrant",
+      "LightMuted": "Light Muted"
+    },
+    "textAlign": "Align",
+    "verticalAlign": "Vertical",
+    "letterSpacing": "Letter Spacing",
+    "lineHeight": "Line Height",
+    "addText": "+ Add Text Element",
+    "emptyText": "(empty)",
+    "contrast": {
+      "good": "Good",
+      "fair": "Fair",
+      "poor": "Poor"
+    },
+    "align": {
+      "left": "Left",
+      "center": "Center",
+      "right": "Right"
+    },
+    "valign": {
+      "top": "Top",
+      "middle": "Middle",
+      "bottom": "Bottom"
+    }
   },
   "exif": {
-    "camera": "Camera",
-    "lens": "Lens",
-    "focalLength": "Focal Length",
-    "aperture": "Aperture",
-    "shutterSpeed": "Shutter",
-    "iso": "ISO",
-    "date": "Date",
-    "location": "Location",
-    "noData": "No EXIF data detected. You can add text manually.",
-    "unknown": "Unknown",
-    "show": "Show",
-    "hide": "Hide"
+    "noData": "No EXIF data detected. Add text manually.",
+    "noValue": "(no data)",
+    "groups": {
+      "camera": "Camera",
+      "params": "Settings",
+      "datetime": "Date & Time",
+      "location": "Location",
+      "other": "Other"
+    }
   },
   "export": {
-    "button": "Export",
+    "button": "Export Image",
     "success": "Photo saved successfully!",
-    "processing": "Generating image..."
+    "processing": "Generating image...",
+    "formatHint": "Output format: JPEG",
+    "qualityHint": "Quality"
   },
-  "crop": {
-    "title": "Crop Photo",
-    "freeform": "Freeform",
-    "confirm": "Apply",
-    "cancel": "Cancel"
+  "common": {
+    "cancel": "Cancel",
+    "save": "Save"
   },
   "theme": {
     "light": "Light",
@@ -70,9 +139,5 @@
   "language": {
     "en": "English",
     "zh": "中文"
-  },
-  "errors": {
-    "browserNotSupported": "Please use the latest version of Chrome, Firefox, Safari or Edge.",
-    "fontLoadFailed": "Font failed to load, using system default font."
   }
 }

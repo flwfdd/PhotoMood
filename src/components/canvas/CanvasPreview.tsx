@@ -1,14 +1,10 @@
-import { useEffect, useState, useCallback } from 'react'
-import { Stage, Layer, Rect, Image as KonvaImage, Text, Group } from 'react-konva'
+import { useState, useRef, useCallback } from 'react'
+import { Stage, Layer, Rect, Image as KonvaImage, Text, Group, Line } from 'react-konva'
+import { motion } from 'framer-motion'
 import { useEditor } from '../../context/EditorContext'
-import { getTemplate } from '../../templates/registry'
-import {
-  formatShutterSpeed,
-  formatFocalLength,
-  formatAperture,
-  formatDate,
-} from '../../lib/exif-parser'
-import type { TextAreaDefinition } from '../../types/template'
+import { resolveColor } from '../../lib/color-resolve'
+import { buildExifMap, renderTemplate } from '../../lib/template-parser'
+import type { TextElement } from '../../types/template'
 import type Konva from 'konva'
 import { useTranslation } from 'react-i18next'
 
@@ -18,178 +14,347 @@ interface CanvasPreviewProps {
   stageRef: React.RefObject<Konva.Stage | null>
 }
 
-function formatExifValue(
-  field: string,
-  value: unknown,
-  format: string | undefined,
-  locale: string
-): string {
-  if (value == null) return ''
-  if (field === 'exposureTime' && typeof value === 'number') return formatShutterSpeed(value)
-  if (field === 'focalLength' && typeof value === 'number') return formatFocalLength(value)
-  if (field === 'fNumber' && typeof value === 'number') return formatAperture(value)
-  if (field === 'dateTimeOriginal' && value instanceof Date) return formatDate(value, locale)
-  if (format) return format.replace('{value}', String(value))
-  return String(value)
+interface GuideLines {
+  x: number[]
+  y: number[]
+}
+
+const SNAP_THRESHOLD = 8
+const MAX_PREVIEW_CANVAS_SIDE = 2048
+const BLEND_MODE_MAP = {
+  normal: 'source-over',
+  multiply: 'multiply',
+  screen: 'screen',
+  overlay: 'overlay',
+  'soft-light': 'soft-light',
+  difference: 'difference',
+} as const
+
+function measureTextBox(text: string, element: TextElement, canvasW: number) {
+  const fontSize = Math.max(element.style.fontSize * canvasW, 8)
+  const lines = text.split('\n')
+  const canvas = document.createElement('canvas')
+  const ctx = canvas.getContext('2d')
+  if (!ctx) {
+    return { width: fontSize, height: fontSize * element.style.lineHeight, fontSize }
+  }
+
+  const fontStyle = element.style.fontWeight >= 600 ? 'bold' : 'normal'
+  ctx.font = `${fontStyle} ${fontSize}px ${element.style.fontFamily}`
+  let width = 0
+  for (const line of lines) {
+    const baseWidth = ctx.measureText(line || ' ').width
+    const spacingWidth = Math.max(0, line.length - 1) * element.style.letterSpacing * fontSize
+    width = Math.max(width, baseWidth + spacingWidth)
+  }
+
+  return {
+    width: Math.max(width + fontSize * 0.4, fontSize * 1.2),
+    height: Math.max(lines.length, 1) * fontSize * element.style.lineHeight,
+    fontSize,
+  }
+}
+
+function getTextOffsets(element: TextElement, boxWidth: number, boxHeight: number) {
+  const x = element.align === 'left' ? 0 : element.align === 'center' ? -boxWidth / 2 : -boxWidth
+  const y = element.verticalAlign === 'top' ? 0 : element.verticalAlign === 'middle' ? -boxHeight / 2 : -boxHeight
+  return { x, y }
+}
+
+function getSnapPoints(
+  elements: TextElement[],
+  activeId: string,
+  imageX: number,
+  imageY: number,
+  imageW: number,
+  imageH: number
+): { x: number[]; y: number[] } {
+  const imageCenterX = imageX + imageW / 2
+  const imageCenterY = imageY + imageH / 2
+
+  const snapX = [imageX, imageCenterX, imageX + imageW]
+  const snapY = [imageY, imageCenterY, imageY + imageH]
+
+  for (const el of elements) {
+    if (el.id === activeId) continue
+    const elX = el.position.x * imageW + imageCenterX
+    const elY = el.position.y * imageH + imageCenterY
+    snapX.push(elX)
+    snapY.push(elY)
+  }
+
+  return { x: snapX, y: snapY }
+}
+
+function snapValue(val: number, snaps: number[], threshold: number): { value: number; snapped: boolean; guide?: number } {
+  for (const s of snaps) {
+    if (Math.abs(val - s) <= threshold) {
+      return { value: s, snapped: true, guide: s }
+    }
+  }
+  return { value: val, snapped: false }
 }
 
 export function CanvasPreview({ containerWidth, containerHeight, stageRef }: CanvasPreviewProps) {
-  const { state } = useEditor()
-  const { i18n } = useTranslation()
-  const [scale, setScale] = useState(1)
+  const { state, dispatch } = useEditor()
+  useTranslation()
+  const [guideLines, setGuideLines] = useState<GuideLines>({ x: [], y: [] })
+  const dragTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  const template = getTemplate(state.currentTemplateId)
+  const template = state.currentTemplate
   const image = state.croppedImage ?? state.originalImage
 
-  const imgW = state.imageSize.width || 1
-  const imgH = state.imageSize.height || 1
+  const rawW = state.imageSize.width || 1
+  const rawH = state.imageSize.height || 1
 
-  const padding = {
-    ...((template?.layout.padding) ?? { top: 0.03, right: 0.03, bottom: 0.15, left: 0.03 }),
-    ...(state.templateOverrides.padding ?? {}),
+  const { aspectRatio, padding, imageCornerRadius, frameColor, crop } = template.layout
+
+  let imgW = rawW
+  let imgH = rawH
+  let cropX = 0
+  let cropY = 0
+  let cropW = rawW
+  let cropH = rawH
+
+  if (crop) {
+    cropX = crop.x * rawW
+    cropY = crop.y * rawH
+    cropW = crop.w * rawW
+    cropH = crop.h * rawH
+    imgW = cropW
+    imgH = cropH
+  } else if (aspectRatio.mode === 'fixed' && aspectRatio.ratio) {
+    const [rw, rh] = aspectRatio.ratio
+    const targetRatio = rw / rh
+    const srcRatio = rawW / rawH
+
+    if (srcRatio > targetRatio) {
+      cropH = rawH
+      cropW = rawH * targetRatio
+      const focusX = state.cropFocus[0]
+      cropX = Math.max(0, Math.min(rawW - cropW, focusX * rawW - cropW / 2))
+    } else {
+      cropW = rawW
+      cropH = rawW / targetRatio
+      const focusY = state.cropFocus[1]
+      cropY = Math.max(0, Math.min(rawH - cropH, focusY * rawH - cropH / 2))
+    }
+
+    imgW = cropW
+    imgH = cropH
   }
 
   const shortSide = Math.min(imgW, imgH)
-  const padTop = padding.top >= 1 ? imgH * (padding.top - 1 > 0 ? 1 : 1) : shortSide * padding.top
+
+  const padTop = shortSide * padding.top
   const padRight = shortSide * padding.right
   const padBottom = shortSide * padding.bottom
   const padLeft = shortSide * padding.left
 
-  const isHalfTemplate = padding.top >= 1
-  const actualPadTop = isHalfTemplate ? imgH : padTop
+  const rawCanvasW = imgW + padLeft + padRight
+  const rawCanvasH = imgH + padTop + padBottom
+  const previewNormalizationScale = Math.min(1, MAX_PREVIEW_CANVAS_SIDE / Math.max(rawCanvasW, rawCanvasH))
 
-  const canvasW = imgW + padLeft + padRight
-  const canvasH = imgH + actualPadTop + padBottom
+  imgW *= previewNormalizationScale
+  imgH *= previewNormalizationScale
+  const normalizedShortSide = shortSide * previewNormalizationScale
+  const normalizedPadTop = padTop * previewNormalizationScale
+  const normalizedPadLeft = padLeft * previewNormalizationScale
 
-  useEffect(() => {
-    if (containerWidth <= 0 || containerHeight <= 0) return
-    const scaleX = containerWidth / canvasW
-    const scaleY = containerHeight / canvasH
-    setScale(Math.min(scaleX, scaleY, 1))
-  }, [containerWidth, containerHeight, canvasW, canvasH])
+  const canvasW = rawCanvasW * previewNormalizationScale
+  const canvasH = rawCanvasH * previewNormalizationScale
+
+  const imageX = normalizedPadLeft
+  const imageY = normalizedPadTop
+
+  const colorContext = { dominantColor: state.dominantColor, palette: state.palette, swatches: state.swatches }
+  const resolvedFrame = resolveColor(frameColor, colorContext)
+
+  const scale = containerWidth > 0 && containerHeight > 0
+    ? Math.min(containerWidth / canvasW, containerHeight / canvasH)
+    : 1
 
   const stageW = canvasW * scale
   const stageH = canvasH * scale
 
-  const frameColor = template?.layout.frameColorMode === 'fixed'
-    ? (template.layout.frameColorFixed ?? state.frameColor)
-    : state.frameColor
+  const exifMap = buildExifMap(state.exifData)
 
-  const textColor = state.textColor
+  const handleDragMove = useCallback(
+    (el: TextElement, node: Konva.Group) => {
+      const imageCenterX = imageX + imgW / 2
+      const imageCenterY = imageY + imgH / 2
 
-  const textAreas: TextAreaDefinition[] = [
-    ...(template?.layout.textAreas ?? []),
-  ]
+      const textElements = template.elements.filter((e): e is TextElement => e.type === 'text')
+      const snaps = getSnapPoints(textElements, el.id, imageX, imageY, imgW, imgH)
 
-  const getTextForArea = (areaId: string): string => {
-    const fields = template?.defaultExifFields.filter(
-      (f) => f.textAreaId === areaId && state.selectedExifFields.includes(f.field as string)
-    ) ?? []
+      const snapX = snapValue(node.x(), snaps.x, SNAP_THRESHOLD / scale)
+      const snapY = snapValue(node.y(), snaps.y, SNAP_THRESHOLD / scale)
 
-    const parts = fields
-      .map((f) => {
-        const override = state.textOverrides[`${areaId}-${f.field}`]
-        if (override?.content != null) return override.content
-        if (!state.exifData) return ''
-        const value = state.exifData[f.field]
-        return formatExifValue(f.field as string, value, f.format, i18n.language)
+      const guides: GuideLines = { x: [], y: [] }
+      if (snapX.snapped && snapX.guide != null) guides.x.push(snapX.guide)
+      if (snapY.snapped && snapY.guide != null) guides.y.push(snapY.guide)
+      setGuideLines(guides)
+
+      node.position({ x: snapX.value, y: snapY.value })
+
+      const newX = (snapX.value - imageCenterX) / imgW
+      const newY = (snapY.value - imageCenterY) / imgH
+
+      dispatch({
+        type: 'UPDATE_ELEMENT',
+        payload: { id: el.id, updates: { position: { x: newX, y: newY } } },
       })
-      .filter(Boolean)
+    },
+    [imageX, imageY, imgW, imgH, scale, template.elements, dispatch]
+  )
 
-    const override = state.textOverrides[areaId]
-    if (override?.content != null) return override.content
-
-    return parts.join('  ')
-  }
-
-  const handleDragEnd = useCallback((_areaId: string, _x: number, _y: number) => {
+  const handleDragEnd = useCallback(() => {
+    if (dragTimeoutRef.current) clearTimeout(dragTimeoutRef.current)
+    dragTimeoutRef.current = setTimeout(() => setGuideLines({ x: [], y: [] }), 300)
   }, [])
 
   if (!image) return null
 
-  const textStyle = template?.defaultTextStyle
-  const baseFontSize = (textStyle?.fontSize ?? 14) * scale * (canvasW / 1000)
-  const fontFamily = textStyle?.fontFamily ?? 'JetBrains Mono'
+  const imageCenterX = imageX + imgW / 2
+  const imageCenterY = imageY + imgH / 2
+  const cornerRadius = imageCornerRadius * normalizedShortSide
+
+  const frameRgb = resolvedFrame.color.replace('#', '')
+  const r = parseInt(frameRgb.substring(0, 2), 16)
+  const g = parseInt(frameRgb.substring(2, 4), 16)
+  const b = parseInt(frameRgb.substring(4, 6), 16)
+  const frameFill = resolvedFrame.opacity < 1
+    ? `rgba(${r},${g},${b},${resolvedFrame.opacity})`
+    : resolvedFrame.color
 
   return (
-    <Stage
-      ref={stageRef}
-      width={stageW}
-      height={stageH}
-      scaleX={scale}
-      scaleY={scale}
+    <motion.div
+      initial={false}
+      animate={{ width: stageW, height: stageH }}
+      transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+      style={{
+        width: `${stageW}px`,
+        height: `${stageH}px`,
+        position: 'relative',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        overflow: 'visible',
+      }}
     >
-      <Layer>
-        <Rect
-          x={0}
-          y={0}
+      <motion.div
+        initial={false}
+        animate={{ scale }}
+        transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+        style={{
+          width: `${canvasW}px`,
+          height: `${canvasH}px`,
+          transformOrigin: 'center center',
+        }}
+      >
+        <Stage
+          ref={stageRef}
           width={canvasW}
           height={canvasH}
-          fill={frameColor === 'transparent' ? undefined : frameColor}
-          cornerRadius={template?.layout.frameCornerRadius ?? 0}
-        />
+        >
+          <Layer>
+            <Rect
+              x={0}
+              y={0}
+              width={canvasW}
+              height={canvasH}
+              fill={frameFill}
+            />
 
-        <KonvaImage
-          image={image}
-          x={padLeft}
-          y={actualPadTop}
-          width={imgW}
-          height={imgH}
-        />
+            <KonvaImage
+              image={image}
+              x={imageX}
+              y={imageY}
+              width={imgW}
+              height={imgH}
+              cornerRadius={cornerRadius}
+              crop={crop || aspectRatio.mode === 'fixed' ? { x: cropX, y: cropY, width: cropW, height: cropH } : undefined}
+              opacity={template.layout.imageOpacity ?? 1}
+            />
 
-        {template?.id === 'clean' && (
-          <Rect
-            x={padLeft}
-            y={actualPadTop + imgH * 0.75}
-            width={imgW}
-            height={imgH * 0.25}
-            fillLinearGradientStartPoint={{ x: 0, y: 0 }}
-            fillLinearGradientEndPoint={{ x: 0, y: imgH * 0.25 }}
-            fillLinearGradientColorStops={[0, 'rgba(0,0,0,0)', 1, 'rgba(0,0,0,0.55)']}
-          />
-        )}
+            {template.elements.map((el) => {
+              if (el.type !== 'text') return null
+              const textEl = el as TextElement
 
-        {textAreas.map((area) => {
-          const text = getTextForArea(area.id)
-          if (!text) return null
+              const { rendered, unresolvedFields } = renderTemplate(textEl.content, exifMap)
+              const hasUnresolved = unresolvedFields.length > 0
+              const box = measureTextBox(rendered, textEl, canvasW)
+              const offsets = getTextOffsets(textEl, box.width, box.height)
+              const resolvedColor = resolveColor(textEl.style.color, colorContext)
+              const colorHex = resolvedColor.color.replace('#', '')
+              const cr = parseInt(colorHex.substring(0, 2), 16)
+              const cg = parseInt(colorHex.substring(2, 4), 16)
+              const cb = parseInt(colorHex.substring(4, 6), 16)
+              const fillColor = resolvedColor.opacity < 1
+                ? `rgba(${cr},${cg},${cb},${resolvedColor.opacity})`
+                : resolvedColor.color
 
-          const areaTextColor = template?.id === 'clean' ? '#FFFFFF' : textColor
+              const absoluteX = textEl.position.x * imgW + imageCenterX
+              const absoluteY = textEl.position.y * imgH + imageCenterY
 
-          const posOverride = state.textOverrides[area.id]?.position
-          const x = posOverride ? posOverride.x : area.x * canvasW
-          const y = posOverride ? posOverride.y : area.y * canvasH
+              return (
+                <Group
+                  key={textEl.id}
+                  x={absoluteX}
+                  y={absoluteY}
+                  draggable
+                  onClick={() => {
+                    dispatch({ type: 'SELECT_TEXT_ELEMENT', payload: textEl.id })
+                    dispatch({ type: 'SET_ACTIVE_PANEL', payload: 'text' })
+                  }}
+                  onTap={() => {
+                    dispatch({ type: 'SELECT_TEXT_ELEMENT', payload: textEl.id })
+                    dispatch({ type: 'SET_ACTIVE_PANEL', payload: 'text' })
+                  }}
+                  onDragMove={(e) => handleDragMove(textEl, e.target as Konva.Group)}
+                  onDragEnd={handleDragEnd}
+                >
+                  <Text
+                    x={offsets.x}
+                    y={offsets.y}
+                    text={rendered}
+                    align={textEl.align}
+                    fontFamily={textEl.style.fontFamily}
+                    fontSize={box.fontSize}
+                    fontStyle={textEl.style.fontWeight >= 600 ? 'bold' : 'normal'}
+                    fill={hasUnresolved ? '#C15F3C' : fillColor}
+                    letterSpacing={textEl.style.letterSpacing * box.fontSize}
+                    lineHeight={textEl.style.lineHeight}
+                    wrap="none"
+                    ellipsis={false}
+                    width={box.width}
+                    globalCompositeOperation={BLEND_MODE_MAP[textEl.style.blendMode ?? 'normal']}
+                  />
+                </Group>
+              )
+            })}
 
-          return (
-            <Group
-              key={area.id}
-              x={x}
-              y={y}
-              draggable
-              onDragEnd={(e) => handleDragEnd(area.id, e.target.x(), e.target.y())}
-              dragBoundFunc={(pos) => ({
-                x: Math.max(0, Math.min(canvasW - area.width * canvasW, pos.x)),
-                y: Math.max(0, Math.min(canvasH - area.height * canvasH, pos.y)),
-              })}
-            >
-              <Text
-                text={text}
-                width={area.width * canvasW}
-                height={area.height * canvasH}
-                align={area.align}
-                verticalAlign={area.verticalAlign}
-                fontFamily={fontFamily}
-                fontSize={Math.max(baseFontSize, 10)}
-                fontStyle={String(textStyle?.fontWeight ?? 400)}
-                fill={areaTextColor}
-                letterSpacing={textStyle?.letterSpacing}
-                lineHeight={textStyle?.lineHeight}
-                wrap="none"
-                ellipsis
+            {guideLines.x.map((gx, i) => (
+              <Line
+                key={`gx-${i}`}
+                points={[gx, 0, gx, canvasH]}
+                stroke="#4099FF"
+                strokeWidth={1 / scale}
+                dash={[4 / scale, 4 / scale]}
               />
-            </Group>
-          )
-        })}
-      </Layer>
-    </Stage>
+            ))}
+            {guideLines.y.map((gy, i) => (
+              <Line
+                key={`gy-${i}`}
+                points={[0, gy, canvasW, gy]}
+                stroke="#4099FF"
+                strokeWidth={1 / scale}
+                dash={[4 / scale, 4 / scale]}
+              />
+            ))}
+          </Layer>
+        </Stage>
+      </motion.div>
+    </motion.div>
   )
 }

@@ -4,15 +4,16 @@ export interface ExifData {
   lensModel?: string
 
   focalLength?: number
+  focalLengthIn35mmFormat?: number
   fNumber?: number
   exposureTime?: number
   iso?: number
-  exposureBias?: number
 
   dateTimeOriginal?: Date
 
   latitude?: number
   longitude?: number
+  altitude?: number
   locationName?: string
 
   imageWidth?: number

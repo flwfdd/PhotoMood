@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { useImageUpload } from '../../hooks/useImageUpload'
 
 interface UploadAreaProps {
-  onUpload: (file: File, image: HTMLImageElement) => void
+  onUpload: (file: File, originalFile: File, image: HTMLImageElement) => void
 }
 
 export function UploadArea({ onUpload }: UploadAreaProps) {
@@ -16,7 +16,7 @@ export function UploadArea({ onUpload }: UploadAreaProps) {
 
   const handleFile = useCallback(async (file: File) => {
     const result = await processFile(file)
-    if (result) onUpload(result.file, result.image)
+    if (result) onUpload(result.file, result.originalFile, result.image)
   }, [processFile, onUpload])
 
   const handleDrop = useCallback(async (e: React.DragEvent) => {

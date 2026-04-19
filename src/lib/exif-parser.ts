@@ -15,18 +15,29 @@ export async function parseExif(file: File): Promise<ExifData | null> {
 
     if (!raw) return null
 
+    const altitudeValue = raw.GPSAltitude
+    const altitudeRef = raw.GPSAltitudeRef
+    const altitude = typeof altitudeValue === 'number'
+      ? (
+        altitudeRef === 1 || altitudeRef === 'Below sea level'
+          ? -altitudeValue
+          : altitudeValue
+      )
+      : undefined
+
     const data: ExifData = {
       make: raw.Make,
       model: raw.Model,
       lensModel: raw.LensModel,
       focalLength: raw.FocalLength,
+      focalLengthIn35mmFormat: raw.FocalLengthIn35mmFormat,
       fNumber: raw.FNumber,
       exposureTime: raw.ExposureTime,
       iso: raw.ISO,
-      exposureBias: raw.ExposureCompensation,
       dateTimeOriginal: raw.DateTimeOriginal instanceof Date ? raw.DateTimeOriginal : undefined,
       latitude: raw.latitude,
       longitude: raw.longitude,
+      altitude,
       imageWidth: raw.ImageWidth ?? raw.ExifImageWidth,
       imageHeight: raw.ImageHeight ?? raw.ExifImageHeight,
       software: raw.Software,
@@ -41,9 +52,9 @@ export async function parseExif(file: File): Promise<ExifData | null> {
 }
 
 export function formatShutterSpeed(exposureTime: number): string {
-  if (exposureTime >= 1) return `${exposureTime}"`
+  if (exposureTime >= 1) return `${exposureTime}s`
   const denominator = Math.round(1 / exposureTime)
-  return `1/${denominator}`
+  return `1/${denominator}s`
 }
 
 export function formatFocalLength(focalLength: number): string {
@@ -55,13 +66,29 @@ export function formatAperture(fNumber: number): string {
 }
 
 export function formatISO(iso: number): string {
-  return `ISO ${iso}`
+  return `ISO${iso}`
 }
 
-export function formatDate(date: Date, locale: string): string {
-  return new Intl.DateTimeFormat(locale, {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-  }).format(date)
+export function formatDate(date: Date): string {
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
+export function formatTime(date: Date): string {
+  const hour = String(date.getHours()).padStart(2, '0')
+  const minute = String(date.getMinutes()).padStart(2, '0')
+  const second = String(date.getSeconds()).padStart(2, '0')
+  return `${hour}:${minute}:${second}`
+}
+
+export function formatGpsCoordinates(latitude: number, longitude: number): string {
+  const latDirection = latitude >= 0 ? 'N' : 'S'
+  const lngDirection = longitude >= 0 ? 'E' : 'W'
+  return `${Math.abs(latitude).toFixed(4)}°${latDirection}, ${Math.abs(longitude).toFixed(4)}°${lngDirection}`
+}
+
+export function formatAltitude(altitude: number): string {
+  return `${Math.round(altitude)}m`
 }
