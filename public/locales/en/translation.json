@@ -1,0 +1,78 @@
+{
+  "app": {
+    "name": "Photo Mood",
+    "tagline": "Frame your photos with mood"
+  },
+  "upload": {
+    "title": "Drop your photo here, or click to upload",
+    "subtitle": "Supports JPEG, PNG, WebP, HEIC",
+    "converting": "Converting HEIC format...",
+    "error": {
+      "tooLarge": "File size exceeds 30 MB limit",
+      "unsupported": "Unsupported file format"
+    }
+  },
+  "panels": {
+    "template": "Templates",
+    "color": "Colors",
+    "text": "Text",
+    "crop": "Crop",
+    "exif": "Photo Info"
+  },
+  "templates": {
+    "polaroid": { "name": "Polaroid", "description": "Classic instant photo style" },
+    "classic": { "name": "Classic", "description": "Even border on all sides" },
+    "half": { "name": "Half", "description": "Color block above, photo below" },
+    "minimal": { "name": "Minimal", "description": "Clean bottom info bar" },
+    "clean": { "name": "Clean", "description": "Text overlay on photo" }
+  },
+  "editor": {
+    "frameColor": "Frame Color",
+    "textColor": "Text Color",
+    "fontSize": "Font Size",
+    "fontFamily": "Font",
+    "fontWeight": "Weight",
+    "customText": "Custom Text",
+    "addText": "Add Text",
+    "palette": "Color Palette",
+    "custom": "Custom Color"
+  },
+  "exif": {
+    "camera": "Camera",
+    "lens": "Lens",
+    "focalLength": "Focal Length",
+    "aperture": "Aperture",
+    "shutterSpeed": "Shutter",
+    "iso": "ISO",
+    "date": "Date",
+    "location": "Location",
+    "noData": "No EXIF data detected. You can add text manually.",
+    "unknown": "Unknown",
+    "show": "Show",
+    "hide": "Hide"
+  },
+  "export": {
+    "button": "Export",
+    "success": "Photo saved successfully!",
+    "processing": "Generating image..."
+  },
+  "crop": {
+    "title": "Crop Photo",
+    "freeform": "Freeform",
+    "confirm": "Apply",
+    "cancel": "Cancel"
+  },
+  "theme": {
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System"
+  },
+  "language": {
+    "en": "English",
+    "zh": "中文"
+  },
+  "errors": {
+    "browserNotSupported": "Please use the latest version of Chrome, Firefox, Safari or Edge.",
+    "fontLoadFailed": "Font failed to load, using system default font."
+  }
+}

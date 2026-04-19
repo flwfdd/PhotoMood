@@ -1,0 +1,78 @@
+{
+  "app": {
+    "name": "Photo Mood",
+    "tagline": "用心情为照片添加边框"
+  },
+  "upload": {
+    "title": "拖拽照片到这里，或点击上传",
+    "subtitle": "支持 JPEG、PNG、WebP、HEIC",
+    "converting": "正在转换 HEIC 格式...",
+    "error": {
+      "tooLarge": "文件超过 30MB 限制",
+      "unsupported": "不支持的文件格式"
+    }
+  },
+  "panels": {
+    "template": "模板",
+    "color": "颜色",
+    "text": "文字",
+    "crop": "裁切",
+    "exif": "拍摄信息"
+  },
+  "templates": {
+    "polaroid": { "name": "拍立得", "description": "经典即时相片风格" },
+    "classic": { "name": "经典", "description": "四周等宽边框" },
+    "half": { "name": "对半", "description": "上方色块，下方照片" },
+    "minimal": { "name": "极简", "description": "底部细信息条" },
+    "clean": { "name": "纯净", "description": "文字叠加在照片上" }
+  },
+  "editor": {
+    "frameColor": "边框颜色",
+    "textColor": "文字颜色",
+    "fontSize": "字体大小",
+    "fontFamily": "字体",
+    "fontWeight": "字重",
+    "customText": "自定义文字",
+    "addText": "添加文字",
+    "palette": "调色板",
+    "custom": "自定义颜色"
+  },
+  "exif": {
+    "camera": "相机",
+    "lens": "镜头",
+    "focalLength": "焦距",
+    "aperture": "光圈",
+    "shutterSpeed": "快门",
+    "iso": "ISO",
+    "date": "日期",
+    "location": "位置",
+    "noData": "未检测到拍摄信息，可手动添加文字",
+    "unknown": "未知",
+    "show": "显示",
+    "hide": "隐藏"
+  },
+  "export": {
+    "button": "导出",
+    "success": "照片保存成功！",
+    "processing": "正在生成图片..."
+  },
+  "crop": {
+    "title": "裁切照片",
+    "freeform": "自由裁切",
+    "confirm": "确认",
+    "cancel": "取消"
+  },
+  "theme": {
+    "light": "浅色",
+    "dark": "深色",
+    "system": "跟随系统"
+  },
+  "language": {
+    "en": "English",
+    "zh": "中文"
+  },
+  "errors": {
+    "browserNotSupported": "请使用 Chrome、Firefox、Safari 或 Edge 最新版本。",
+    "fontLoadFailed": "字体加载失败，已使用系统默认字体。"
+  }
+}
