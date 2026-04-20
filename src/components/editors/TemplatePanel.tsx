@@ -121,9 +121,9 @@ export function TemplatePanel() {
         </div>
       </div>
 
-      {userTemplates.length > 0 && (
-        <div>
-          {sectionLabel(t('template.userTemplates'))}
+      <div>
+        {sectionLabel(t('template.userTemplates'))}
+        {userTemplates.length > 0 ? (
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
             {userTemplates.map((tpl) => (
               <TemplateCard
@@ -135,8 +135,22 @@ export function TemplatePanel() {
               />
             ))}
           </div>
-        </div>
-      )}
+        ) : (
+          <div
+            style={{
+              padding: '12px 14px',
+              borderRadius: 'var(--radius-sm)',
+              border: '1px dashed var(--bg-subtle)',
+              background: 'color-mix(in srgb, var(--bg-subtle) 36%, transparent)',
+              fontSize: '12px',
+              color: 'var(--text-tertiary)',
+              lineHeight: 1.6,
+            }}
+          >
+            {t('template.userTemplatesHint')}
+          </div>
+        )}
+      </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
         <div style={{ display: 'flex', gap: '8px' }}>

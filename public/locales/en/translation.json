@@ -30,6 +30,7 @@
   "template": {
     "builtin": "Built-in Templates",
     "userTemplates": "My Templates",
+    "userTemplatesHint": "No saved templates yet. Save the current template, use Save as, or import one to get started.",
     "save": "Save Template",
     "saveAs": "Save as Template",
     "import": "Import Template",

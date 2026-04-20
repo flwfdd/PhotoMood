@@ -2,13 +2,13 @@ import type { TemplateDefinition } from '../types/template'
 import { polaroidTemplate } from './polaroid'
 import { colorWalkTemplate } from './color-walk'
 import { minimalTemplate } from './minimal'
-import { darkProTemplate } from './dark-pro'
+import { featureDemoTemplate } from './feature-demo'
 
 export const builtinTemplates: TemplateDefinition[] = [
   polaroidTemplate,
   colorWalkTemplate,
   minimalTemplate,
-  darkProTemplate,
+  featureDemoTemplate,
 ]
 
 export function getBuiltinTemplate(id: string): TemplateDefinition | undefined {

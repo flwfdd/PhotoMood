@@ -1,5 +1,9 @@
 # PhotoMood
 
+<p align="center">
+  <img src="./public/android-chrome-192x192.png" alt="PhotoMood icon"/>
+</p>
+
 PhotoMood 是一个纯前端、零后端依赖的照片边框与信息排版工具。  
 上传照片后，应用会在浏览器内完成 EXIF 解析、主题色提取、模板排版与导出，帮助你快速生成适合分享的成片。
 
