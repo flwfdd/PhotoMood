@@ -1,20 +1,36 @@
 import { useState, useEffect } from 'react'
 
-type Theme = 'light' | 'dark'
+type ThemeMode = 'light' | 'dark' | 'system'
 
 export function useTheme() {
-  const [theme, setTheme] = useState<Theme>(() => {
-    const stored = localStorage.getItem('photo-mood-theme') as Theme | null
+  const [theme, setTheme] = useState<ThemeMode>(() => {
+    const stored = localStorage.getItem('photo-mood-theme') as ThemeMode | null
     if (stored) return stored
-    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+    return 'system'
   })
 
   useEffect(() => {
-    document.documentElement.setAttribute('data-theme', theme)
+    const media = window.matchMedia('(prefers-color-scheme: dark)')
+    const applyTheme = () => {
+      const resolvedTheme = theme === 'system'
+        ? (media.matches ? 'dark' : 'light')
+        : theme
+      document.documentElement.setAttribute('data-theme', resolvedTheme)
+    }
+
+    applyTheme()
     localStorage.setItem('photo-mood-theme', theme)
+    media.addEventListener('change', applyTheme)
+    return () => media.removeEventListener('change', applyTheme)
   }, [theme])
 
-  const toggleTheme = () => setTheme((t) => (t === 'dark' ? 'light' : 'dark'))
+  const cycleTheme = () => {
+    setTheme((current) => {
+      if (current === 'system') return 'light'
+      if (current === 'light') return 'dark'
+      return 'system'
+    })
+  }
 
-  return { theme, toggleTheme }
+  return { theme, cycleTheme }
 }

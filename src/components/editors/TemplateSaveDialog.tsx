@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { X, Save } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useEditor } from '../../context/EditorContext'
-import { saveTemplate } from '../../lib/template-storage'
+import { duplicateTemplate } from '../../lib/template-storage'
 import { toast } from 'sonner'
 
 interface Props {
@@ -23,7 +23,9 @@ export function TemplateSaveDialog({ open, onClose, onSaved }: Props) {
     if (!trimmed) return
     setSaving(true)
     try {
-      saveTemplate({ ...state.currentTemplate, name: trimmed, builtin: false })
+      // "Save as" should always create a new user template id.
+      // Otherwise it can collide with builtin template ids and both appear selected.
+      duplicateTemplate(state.currentTemplate, trimmed)
       toast.success(t('template.saveSuccess'))
       setName('')
       onSaved?.()

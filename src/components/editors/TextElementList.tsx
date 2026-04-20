@@ -14,9 +14,9 @@ function makeDefaultElement(): TextElement {
     id: nanoid(),
     content: '',
     style: {
-      fontFamily: 'JetBrains Mono',
+      fontFamily: 'Space Mono',
       fontSize: 0.025,
-      fontWeight: 400,
+      fontWeight: 500,
       color: { type: 'fixed', value: '#2D2B2A', opacity: 1 },
       letterSpacing: 0.02,
       lineHeight: 1.4,
@@ -55,6 +55,7 @@ export function TextElementList() {
 
   const handleRemove = (id: string, e: React.MouseEvent) => {
     e.stopPropagation()
+    if (!window.confirm(t('common.confirmDeleteText'))) return
     dispatch({ type: 'REMOVE_ELEMENT', payload: id })
     setOpenIds((prev) => { const next = new Set(prev); next.delete(id); return next })
   }

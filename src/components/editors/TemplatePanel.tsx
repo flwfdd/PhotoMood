@@ -1,11 +1,11 @@
 import { useState, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
-import { Download, Plus, Trash2, Link } from 'lucide-react'
+import { Download, Plus, Trash2, Link, Save } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { useEditor } from '../../context/EditorContext'
 import { builtinTemplates, getTemplateName } from '../../templates/index'
-import { listUserTemplates, deleteTemplate } from '../../lib/template-storage'
+import { listUserTemplates, deleteTemplate, saveTemplate, duplicateTemplate } from '../../lib/template-storage'
 import { exportTemplate } from '../../lib/template-share'
 import { TemplateSaveDialog } from './TemplateSaveDialog'
 import { TemplateImportDialog } from './TemplateImportDialog'
@@ -74,6 +74,7 @@ export function TemplatePanel() {
   }
 
   const handleDelete = (id: string) => {
+    if (!window.confirm(t('common.confirmDeleteTemplate'))) return
     deleteTemplate(id)
     refresh()
   }
@@ -86,8 +87,20 @@ export function TemplatePanel() {
     })
   }
 
+  const handleSaveCurrent = () => {
+    // If current is a user template, update it in-place.
+    // If current is builtin, saving with the same id would collide; treat it as "save as".
+    if (state.currentTemplate.builtin) {
+      duplicateTemplate(state.currentTemplate, getTemplateName(state.currentTemplate, (navigator.language || 'en')))
+    } else {
+      saveTemplate(state.currentTemplate)
+    }
+    toast.success(t('template.saveSuccess'))
+    refresh()
+  }
+
   const sectionLabel = (label: string) => (
-    <h4 style={{ margin: '0 0 8px', fontSize: '11px', fontWeight: 600, color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+    <h4 style={{ margin: '0 0 8px', fontSize: '13px', fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
       {label}
     </h4>
   )
@@ -128,6 +141,17 @@ export function TemplatePanel() {
       <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
         <div style={{ display: 'flex', gap: '8px' }}>
           <button
+            onClick={handleSaveCurrent}
+            style={{
+              flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px',
+              padding: '9px 12px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--bg-subtle)',
+              background: 'var(--bg-surface)', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: '12px', fontWeight: 500,
+            }}
+          >
+            <Save size={14} />
+            {t('template.save')}
+          </button>
+          <button
             onClick={() => setSaveOpen(true)}
             style={{
               flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px',
@@ -138,6 +162,8 @@ export function TemplatePanel() {
             <Plus size={14} />
             {t('template.saveAs')}
           </button>
+        </div>
+        <div style={{ display: 'flex', gap: '8px' }}>
           <button
             onClick={() => setImportOpen(true)}
             style={{
@@ -149,19 +175,18 @@ export function TemplatePanel() {
             <Download size={14} />
             {t('template.import')}
           </button>
+          <button
+            onClick={handleShareCurrent}
+            style={{
+              flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
+              padding: '9px 12px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--bg-subtle)',
+              background: 'var(--bg-surface)', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: '12px', fontWeight: 500,
+            }}
+          >
+            <Link size={14} />
+            {t('template.shareCurrentLink')}
+          </button>
         </div>
-
-        <button
-          onClick={handleShareCurrent}
-          style={{
-            width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
-            padding: '9px 12px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--bg-subtle)',
-            background: 'var(--bg-surface)', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: '12px', fontWeight: 500,
-          }}
-        >
-          <Link size={14} />
-          {t('template.shareCurrentLink')}
-        </button>
       </div>
 
       <TemplateSaveDialog open={saveOpen} onClose={() => setSaveOpen(false)} onSaved={refresh} />

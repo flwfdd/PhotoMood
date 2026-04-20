@@ -83,6 +83,14 @@ export function formatTime(date: Date): string {
   return `${hour}:${minute}:${second}`
 }
 
+export function formatTimeAmPm(date: Date): string {
+  const hours = date.getHours()
+  const hour12 = hours % 12 || 12
+  const minute = String(date.getMinutes()).padStart(2, '0')
+  const suffix = hours < 12 ? 'AM' : 'PM'
+  return `${String(hour12).padStart(2, '0')}:${minute} ${suffix}`
+}
+
 export function formatGpsCoordinates(latitude: number, longitude: number): string {
   const latDirection = latitude >= 0 ? 'N' : 'S'
   const lngDirection = longitude >= 0 ? 'E' : 'W'

@@ -13,7 +13,7 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg', 'icon-192.png', 'icon-512.png'],
       manifest: {
-        name: 'Photo Mood',
+        name: 'PhotoMood',
         short_name: 'PhotoMood',
         description: 'Frame your photos with mood — extract colors, add borders, show EXIF info',
         theme_color: '#F4F3EE',

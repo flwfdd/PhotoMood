@@ -1,9 +1,10 @@
-import { useState, useRef, useCallback } from 'react'
+import { useState, useRef, useCallback, useEffect, useMemo } from 'react'
 import { Stage, Layer, Rect, Image as KonvaImage, Text, Group, Line } from 'react-konva'
 import { motion } from 'framer-motion'
 import { useEditor } from '../../context/EditorContext'
 import { resolveColor } from '../../lib/color-resolve'
 import { buildExifMap, renderTemplate } from '../../lib/template-parser'
+import { ensureFontLoaded } from '../../lib/font-loader'
 import type { TextElement } from '../../types/template'
 import type Konva from 'konva'
 import { useTranslation } from 'react-i18next'
@@ -39,8 +40,7 @@ function measureTextBox(text: string, element: TextElement, canvasW: number) {
     return { width: fontSize, height: fontSize * element.style.lineHeight, fontSize }
   }
 
-  const fontStyle = element.style.fontWeight >= 600 ? 'bold' : 'normal'
-  ctx.font = `${fontStyle} ${fontSize}px ${element.style.fontFamily}`
+  ctx.font = `${element.style.fontWeight} ${fontSize}px "${element.style.fontFamily}"`
   let width = 0
   for (const line of lines) {
     const baseWidth = ctx.measureText(line || ' ').width
@@ -99,6 +99,7 @@ export function CanvasPreview({ containerWidth, containerHeight, stageRef }: Can
   const { state, dispatch } = useEditor()
   useTranslation()
   const [guideLines, setGuideLines] = useState<GuideLines>({ x: [], y: [] })
+  const [, forceTextMeasureTick] = useState(0)
   const dragTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const template = state.currentTemplate
@@ -144,12 +145,14 @@ export function CanvasPreview({ containerWidth, containerHeight, stageRef }: Can
     imgH = cropH
   }
 
-  const shortSide = Math.min(imgW, imgH)
-
-  const padTop = shortSide * padding.top
-  const padRight = shortSide * padding.right
-  const padBottom = shortSide * padding.bottom
-  const padLeft = shortSide * padding.left
+  // Padding is expressed as a percentage of the image dimension per axis:
+  // - top/bottom are relative to image height
+  // - left/right are relative to image width
+  // This makes "100%" intuitive (top=100% means padTop equals image height).
+  const padTop = imgH * padding.top
+  const padRight = imgW * padding.right
+  const padBottom = imgH * padding.bottom
+  const padLeft = imgW * padding.left
 
   const rawCanvasW = imgW + padLeft + padRight
   const rawCanvasH = imgH + padTop + padBottom
@@ -157,7 +160,7 @@ export function CanvasPreview({ containerWidth, containerHeight, stageRef }: Can
 
   imgW *= previewNormalizationScale
   imgH *= previewNormalizationScale
-  const normalizedShortSide = shortSide * previewNormalizationScale
+  const normalizedShortSide = Math.min(imgW, imgH)
   const normalizedPadTop = padTop * previewNormalizationScale
   const normalizedPadLeft = padLeft * previewNormalizationScale
 
@@ -177,7 +180,48 @@ export function CanvasPreview({ containerWidth, containerHeight, stageRef }: Can
   const stageW = canvasW * scale
   const stageH = canvasH * scale
 
-  const exifMap = buildExifMap(state.exifData)
+  const exifMap = useMemo(() => buildExifMap(state.exifData), [state.exifData])
+
+  const fontLoadSignature = useMemo(() => {
+    const textElements = template.elements.filter((e): e is TextElement => e.type === 'text')
+    return textElements
+      .map((e) => `${e.style.fontFamily}|${e.style.fontWeight}|${e.content}`)
+      .sort()
+      .join('||')
+  }, [template.elements])
+
+  useEffect(() => {
+    const textElements = template.elements.filter((e): e is TextElement => e.type === 'text')
+    if (textElements.length === 0) return
+    let cancelled = false
+
+    const byFamily = new Map<string, { weights: Set<TextElement['style']['fontWeight']>; text: string }>()
+    for (const el of textElements) {
+      const entry = byFamily.get(el.style.fontFamily) ?? { weights: new Set<TextElement['style']['fontWeight']>(), text: '' }
+      entry.weights.add(el.style.fontWeight)
+      const { rendered } = renderTemplate(el.content, exifMap)
+      entry.text += rendered
+      byFamily.set(el.style.fontFamily, entry)
+    }
+
+    Promise.all(
+      Array.from(byFamily.entries()).map(([family, info]) =>
+        ensureFontLoaded({
+          family,
+          weights: Array.from(info.weights),
+          text: info.text,
+        })
+      )
+    ).then(() => {
+      if (cancelled) return
+      stageRef.current?.batchDraw()
+      // batchDraw repaints Konva, but our text layout depends on measureTextBox()
+      // which runs during React render. Force a re-render so sizes/offsets are
+      // recalculated after fonts finish loading (avoids "fixed after hover").
+      forceTextMeasureTick((v) => v + 1)
+    })
+    return () => { cancelled = true }
+  }, [exifMap, fontLoadSignature, stageRef, template.elements])
 
   const handleDragMove = useCallback(
     (el: TextElement, node: Konva.Group) => {
@@ -321,7 +365,7 @@ export function CanvasPreview({ containerWidth, containerHeight, stageRef }: Can
                     align={textEl.align}
                     fontFamily={textEl.style.fontFamily}
                     fontSize={box.fontSize}
-                    fontStyle={textEl.style.fontWeight >= 600 ? 'bold' : 'normal'}
+                    fontStyle={String(textEl.style.fontWeight)}
                     fill={hasUnresolved ? '#C15F3C' : fillColor}
                     letterSpacing={textEl.style.letterSpacing * box.fontSize}
                     lineHeight={textEl.style.lineHeight}

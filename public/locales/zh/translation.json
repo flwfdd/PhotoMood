@@ -1,26 +1,36 @@
 {
   "app": {
-    "name": "Photo Mood",
+    "name": "PhotoMood",
     "tagline": "用心情为照片添加边框"
   },
   "upload": {
     "title": "拖拽照片到这里，或点击上传",
-    "subtitle": "支持 JPEG、PNG、WebP、HEIC",
+    "subtitle": "支持 JPG、PNG、WebP、HEIC",
     "converting": "正在转换 HEIC 格式...",
+    "pwaTitle": "推荐安装为 PWA",
+    "pwaIosHint": "在 Safari 中点分享按钮，然后选择“添加到主屏幕”，作为 App 安装使用更加丝滑。",
+    "pwaAndroidHint": "在 Chrome 中点右上角菜单，选择“安装应用”或“添加到主屏幕”，作为 App 安装使用更加丝滑。",
+    "pwaDesktopHint": "推荐在 Chrome / Edge 中安装为应用：点击地址栏右侧安装图标，或在浏览器菜单里选择“安装 PhotoMood”。",
+    "shareHint": {
+      "prefix": "欢迎分享给朋友们并来",
+      "github": "GitHub",
+      "suffix": "点一个 Star"
+    },
     "error": {
-      "tooLarge": "文件超过 30MB 限制",
+      "tooLarge": "文件超过 50MB 限制",
       "unsupported": "不支持的文件格式"
     }
   },
   "panels": {
     "template": "模板",
-    "layout": "边框",
+    "layout": "构图",
     "text": "文字",
     "export": "导出"
   },
   "template": {
     "builtin": "内置模板",
     "userTemplates": "我的模板",
+    "save": "保存模版",
     "saveAs": "另存为模板",
     "import": "导入模板",
     "importHint": "粘贴分享链接或模板字符串。",
@@ -29,9 +39,12 @@
     "confirmImport": "确认导入",
     "importError": "模板格式无效",
     "importSuccess": "模板导入成功！",
+    "importingFromLink": "正在导入模版链接...",
+    "importedFromLink": "模板链接已导入",
+    "importedFromLinkNamed": "模板 {{name}} 已导入",
     "exportCopied": "模板已复制到剪贴板！",
     "shareLinkCopied": "分享链接已复制！",
-    "shareCurrentLink": "分享当前模板",
+    "shareCurrentLink": "分享模版",
     "saveSuccess": "模板保存成功！",
     "namePlaceholder": "模板名称...",
     "elements": "个元素"
@@ -65,6 +78,13 @@
     "textContent": "内容",
     "insertExif": "插入信息",
     "fontFamily": "字体",
+    "fontGroupSans": "无衬线",
+    "fontGroupSerif": "衬线",
+    "fontGroupMono": "等宽",
+    "fontGroupDisplay": "标题",
+    "fontGroupHand": "手写",
+    "fontGroupCjk": "中文",
+    "fontGroupSystem": "系统",
     "fontWeight": "字重",
     "fontSize": "字号",
     "textColor": "颜色",
@@ -91,7 +111,7 @@
     "verticalAlign": "垂直",
     "letterSpacing": "字间距",
     "lineHeight": "行高",
-    "addText": "+ 添加文字元素",
+    "addText": "添加文字元素",
     "emptyText": "（空）",
     "contrast": {
       "good": "对比度佳",
@@ -123,13 +143,28 @@
   "export": {
     "button": "导出图片",
     "success": "照片保存成功！",
+    "failed": "导出失败",
     "processing": "正在生成图片...",
-    "formatHint": "输出格式：JPEG",
-    "qualityHint": "质量"
+    "previewTitle": "导出预览",
+    "previewHint": "长按图片即可保存到相册",
+    "formatLabel": "输出格式",
+    "format": {
+      "jpeg": "JPG",
+      "png": "PNG",
+      "webp": "WebP"
+    },
+    "qualityLabel": "质量",
+    "estimateLabel": "预估大小",
+    "estimateEstimating": "估算中…",
+    "estimateUnavailable": "—"
   },
   "common": {
     "cancel": "取消",
-    "save": "保存"
+    "save": "保存",
+    "replaceImage": "更换图片",
+    "github": "GitHub",
+    "confirmDeleteText": "确认删除这段文字吗？",
+    "confirmDeleteTemplate": "确认删除这个模板吗？"
   },
   "theme": {
     "light": "浅色",

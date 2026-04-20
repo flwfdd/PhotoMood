@@ -2,7 +2,7 @@ import { useState, useCallback } from 'react'
 import { toast } from 'sonner'
 import { isHeicFile, convertHeicToJpeg, loadImageFromFile, resizeImageIfNeeded } from '../lib/image-utils'
 
-const MAX_FILE_SIZE = 30 * 1024 * 1024
+const MAX_FILE_SIZE = 50 * 1024 * 1024
 
 export interface UploadedImage {
   file: File
@@ -32,7 +32,6 @@ export function useImageUpload() {
       const originalFile = rawFile
       let file = rawFile
       if (isHeicFile(rawFile)) {
-        toast.info('upload.converting')
         file = await convertHeicToJpeg(rawFile)
       }
 

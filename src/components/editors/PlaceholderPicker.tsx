@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { createPortal } from 'react-dom'
 import { useTranslation } from 'react-i18next'
 import { Hash, X } from 'lucide-react'
 import { useEditor } from '../../context/EditorContext'
@@ -39,16 +40,26 @@ export function PlaceholderPicker({ onInsert }: Props) {
         {t('editor.insertExif')}
       </button>
 
-      {open && (
+      {open && typeof document !== 'undefined' && createPortal(
         <>
           <div
             onClick={() => setOpen(false)}
             style={{ position: 'fixed', inset: 0, backgroundColor: 'var(--bg-overlay)', zIndex: 210 }}
           />
-          <div style={{ position: 'fixed', inset: 0, zIndex: 211, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }}>
+          <div
+            style={{
+              position: 'fixed',
+              inset: 0,
+              zIndex: 211,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: 'max(16px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom))',
+            }}
+          >
             <div style={{
               width: 'min(420px, calc(100vw - 32px))',
-              maxHeight: 'min(70vh, 560px)',
+              maxHeight: 'min(70dvh, 560px)',
               overflow: 'hidden',
               backgroundColor: 'var(--bg-surface)',
               border: '1px solid var(--bg-subtle)',
@@ -85,7 +96,7 @@ export function PlaceholderPicker({ onInsert }: Props) {
                         <button
                           key={field}
                           onClick={() => {
-                            onInsert(`{{exif.${field}}}`)
+                            onInsert(`{{${field}}}`)
                             setOpen(false)
                           }}
                           style={{
@@ -118,7 +129,8 @@ export function PlaceholderPicker({ onInsert }: Props) {
               </div>
             </div>
           </div>
-        </>
+        </>,
+        document.body
       )}
     </>
   )

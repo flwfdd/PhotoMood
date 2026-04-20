@@ -1,7 +1,7 @@
 import type { ExifData } from '../types/exif'
-import { formatShutterSpeed, formatFocalLength, formatAperture, formatISO, formatDate, formatTime, formatGpsCoordinates, formatAltitude } from './exif-parser'
+import { formatShutterSpeed, formatFocalLength, formatAperture, formatISO, formatDate, formatTime, formatTimeAmPm, formatGpsCoordinates, formatAltitude } from './exif-parser'
 
-const PLACEHOLDER_REGEX = /\{\{exif\.(\w+)\}\}/g
+const PLACEHOLDER_REGEX = /\{\{(\w+)\}\}/g
 
 export function buildExifMap(exifData: ExifData | null): Record<string, string> {
   if (!exifData) return {}
@@ -29,6 +29,7 @@ export function buildExifMap(exifData: ExifData | null): Record<string, string> 
     const date = exifData.dateTimeOriginal
     map.date = formatDate(date)
     map.time = formatTime(date)
+    map.timeAmPm = formatTimeAmPm(date)
   }
 
   return map
@@ -46,7 +47,7 @@ export function renderTemplate(content: string, exifMap: Record<string, string>)
       return exifMap[fieldName]
     }
     unresolvedFields.push(fieldName)
-    return `{{exif.${fieldName}}}`
+    return `{{${fieldName}}}`
   })
   return { rendered, unresolvedFields }
 }
@@ -62,7 +63,7 @@ export const EXIF_FIELD_GROUPS = [
   },
   {
     groupKey: 'exif.groups.datetime',
-    fields: ['date', 'time'],
+    fields: ['date', 'time', 'timeAmPm'],
   },
   {
     groupKey: 'exif.groups.location',

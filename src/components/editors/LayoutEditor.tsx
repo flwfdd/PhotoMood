@@ -17,13 +17,67 @@ function Slider({ label, value, min, max, step, displayValue, onChange }: {
   label: string; value: number; min: number; max: number; step: number
   displayValue?: string; onChange: (v: number) => void
 }) {
+  const isPercent = (displayValue ?? '').includes('%')
+  const inputMin = isPercent ? min * 100 : min
+  const inputMax = isPercent ? max * 100 : max
+  const inputStep = isPercent ? step * 100 : step
+  const inputValue = isPercent ? value * 100 : value
+
+  const computedText = String(isPercent ? Math.round(inputValue) : inputValue)
+  const [text, setText] = useState(computedText)
+  const [editing, setEditing] = useState(false)
+
+  const commit = () => {
+    const n = parseFloat(text)
+    if (Number.isNaN(n)) {
+      setText(computedText)
+      return
+    }
+    const raw = isPercent ? n / 100 : n
+    const clamped = Math.max(min, Math.min(max, raw))
+    onChange(clamped)
+  }
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between' }}>
         <span style={{ fontSize: '12px', color: 'var(--text-secondary)', fontWeight: 500 }}>{label}</span>
-        <span style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--text-tertiary)' }}>
-          {displayValue ?? value}
-        </span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <input
+            type="number"
+            value={editing ? text : computedText}
+            min={inputMin}
+            max={inputMax}
+            step={inputStep}
+            onChange={(e) => setText(e.target.value)}
+            onFocus={() => {
+              setEditing(true)
+              setText(computedText)
+            }}
+            onBlur={() => {
+              commit()
+              setEditing(false)
+            }}
+            onKeyDown={(e) => { if (e.key === 'Enter') (e.currentTarget as HTMLInputElement).blur() }}
+            style={{
+              width: '72px',
+              padding: '3px 6px',
+              borderRadius: 'var(--radius-sm)',
+              border: `1px solid ${editing ? 'var(--accent)' : 'var(--bg-subtle)'}`,
+              backgroundColor: 'var(--bg-subtle)',
+              color: 'var(--text-secondary)',
+              fontSize: '11px',
+              fontFamily: 'var(--font-mono)',
+              textAlign: 'right',
+              outline: 'none',
+              appearance: 'textfield',
+              WebkitAppearance: 'none',
+            }}
+          />
+          {(displayValue ?? '').includes('%') && (
+            <span style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--text-tertiary)' }}>%</span>
+          )}
+        </div>
       </div>
       <input
         type="range" min={min} max={max} step={step} value={value}

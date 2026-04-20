@@ -156,9 +156,36 @@ export function ColorValueEditor({ label, value, onChange, colorContext, hideOpa
         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
             <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>{t('editor.opacity')}</span>
-            <span style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--text-tertiary)' }}>
-              {Math.round(opacity * 100)}%
-            </span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <input
+                type="number"
+                min={0}
+                max={100}
+                step={1}
+                value={Math.round(opacity * 100)}
+                onChange={(e) => {
+                  const n = parseFloat(e.target.value)
+                  if (Number.isNaN(n)) return
+                  const clamped = Math.max(0, Math.min(100, n))
+                  onChange({ ...value, opacity: clamped / 100 })
+                }}
+                style={{
+                  width: '64px',
+                  padding: '3px 6px',
+                  borderRadius: 'var(--radius-sm)',
+                  border: '1px solid var(--bg-subtle)',
+                  backgroundColor: 'var(--bg-subtle)',
+                  color: 'var(--text-secondary)',
+                  fontSize: '11px',
+                  fontFamily: 'var(--font-mono)',
+                  textAlign: 'right',
+                  outline: 'none',
+                  appearance: 'textfield',
+                  WebkitAppearance: 'none',
+                }}
+              />
+              <span style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--text-tertiary)' }}>%</span>
+            </div>
           </div>
           <input
             type="range"

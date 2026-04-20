@@ -1,26 +1,36 @@
 {
   "app": {
-    "name": "Photo Mood",
+    "name": "PhotoMood",
     "tagline": "Frame your photos with mood"
   },
   "upload": {
     "title": "Drop your photo here, or click to upload",
-    "subtitle": "Supports JPEG, PNG, WebP, HEIC",
+    "subtitle": "Supports JPG, PNG, WebP, HEIC",
     "converting": "Converting HEIC format...",
+    "pwaTitle": "Recommended: install as a PWA",
+    "pwaIosHint": "In Safari, tap Share and choose \"Add to Home Screen\" for a faster, app-like experience.",
+    "pwaAndroidHint": "In Chrome, open the top-right menu and choose \"Install app\" or \"Add to Home screen\" for a faster, app-like experience.",
+    "pwaDesktopHint": "On Chrome or Edge, install it as an app from the address bar install icon, or choose \"Install PhotoMood\" from the browser menu.",
+    "shareHint": {
+      "prefix": "Share it with your friends and give",
+      "github": "GitHub",
+      "suffix": "a Star"
+    },
     "error": {
-      "tooLarge": "File size exceeds 30 MB limit",
+      "tooLarge": "File size exceeds 50 MB limit",
       "unsupported": "Unsupported file format"
     }
   },
   "panels": {
     "template": "Templates",
-    "layout": "Frame",
+    "layout": "Composition",
     "text": "Text",
     "export": "Export"
   },
   "template": {
     "builtin": "Built-in Templates",
     "userTemplates": "My Templates",
+    "save": "Save Template",
     "saveAs": "Save as Template",
     "import": "Import Template",
     "importHint": "Paste a shared link or template string.",
@@ -29,9 +39,12 @@
     "confirmImport": "Confirm Import",
     "importError": "Invalid template format",
     "importSuccess": "Template imported successfully!",
+    "importingFromLink": "Importing template link...",
+    "importedFromLink": "Template link imported",
+    "importedFromLinkNamed": "Template {{name}} imported",
     "exportCopied": "Template copied to clipboard!",
     "shareLinkCopied": "Share link copied!",
-    "shareCurrentLink": "Share Current Template",
+    "shareCurrentLink": "Share Template",
     "saveSuccess": "Template saved!",
     "namePlaceholder": "Template name...",
     "elements": "elements"
@@ -65,6 +78,13 @@
     "textContent": "Content",
     "insertExif": "Insert Info",
     "fontFamily": "Font",
+    "fontGroupSans": "Sans",
+    "fontGroupSerif": "Serif",
+    "fontGroupMono": "Mono",
+    "fontGroupDisplay": "Title",
+    "fontGroupHand": "Handwriting",
+    "fontGroupCjk": "CJK",
+    "fontGroupSystem": "System",
     "fontWeight": "Weight",
     "fontSize": "Size",
     "textColor": "Color",
@@ -91,7 +111,7 @@
     "verticalAlign": "Vertical",
     "letterSpacing": "Letter Spacing",
     "lineHeight": "Line Height",
-    "addText": "+ Add Text Element",
+    "addText": "Add Text Element",
     "emptyText": "(empty)",
     "contrast": {
       "good": "Good",
@@ -123,13 +143,28 @@
   "export": {
     "button": "Export Image",
     "success": "Photo saved successfully!",
+    "failed": "Export failed",
     "processing": "Generating image...",
-    "formatHint": "Output format: JPEG",
-    "qualityHint": "Quality"
+    "previewTitle": "Export Preview",
+    "previewHint": "Long-press the image to save",
+    "formatLabel": "Format",
+    "format": {
+      "jpeg": "JPG",
+      "png": "PNG",
+      "webp": "WebP"
+    },
+    "qualityLabel": "Quality",
+    "estimateLabel": "Estimated size",
+    "estimateEstimating": "Estimating…",
+    "estimateUnavailable": "—"
   },
   "common": {
     "cancel": "Cancel",
-    "save": "Save"
+    "save": "Save",
+    "replaceImage": "Replace Image",
+    "github": "GitHub",
+    "confirmDeleteText": "Delete this text element?",
+    "confirmDeleteTemplate": "Delete this template?"
   },
   "theme": {
     "light": "Light",

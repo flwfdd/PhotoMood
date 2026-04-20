@@ -39,6 +39,7 @@ function EditorApp() {
   const [originalFilename, setOriginalFilename] = useState('photo')
   const [isMobile, setIsMobile] = useState(false)
   const [mobileHeights, setMobileHeights] = useState({ toolbar: 57, drawer: 0 })
+  const [importedTemplateFromLinkName, setImportedTemplateFromLinkName] = useState<string | null>(null)
 
   useEffect(() => {
     const checkMobile = () => {
@@ -53,9 +54,13 @@ function EditorApp() {
     const tpl = getTemplateFromUrlHash()
     if (tpl) {
       dispatch({ type: 'SET_TEMPLATE', payload: tpl })
+      const templateName = typeof tpl.name === 'string'
+        ? tpl.name
+        : (i18n.language.startsWith('zh') ? tpl.name.zh : tpl.name.en)
+      requestAnimationFrame(() => setImportedTemplateFromLinkName(templateName))
       window.history.replaceState(null, '', window.location.pathname)
     }
-  }, [dispatch])
+  }, [dispatch, i18n.language])
 
   useEffect(() => {
     if (!state.originalImage) return
@@ -100,11 +105,9 @@ function EditorApp() {
   }, [])
 
   const handleUpload = useCallback(async (file: File, originalFile: File, image: HTMLImageElement) => {
-    setOriginalFilename(file.name)
-    dispatch({
-      type: 'SET_IMAGE',
-      payload: { original: image, size: { width: image.naturalWidth, height: image.naturalHeight } },
-    })
+    setOriginalFilename(file.name || 'photo')
+    setImportedTemplateFromLinkName(null)
+    dispatch({ type: 'SET_IMAGE', payload: { original: image, size: { width: image.naturalWidth, height: image.naturalHeight } } })
 
     const exifResult = await extractExif(originalFile, i18n.language)
     if (exifResult) dispatch({ type: 'SET_EXIF', payload: exifResult })
@@ -117,7 +120,7 @@ function EditorApp() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100dvh', overflow: 'hidden', backgroundColor: 'var(--bg-base)' }}>
-      <Header stageRef={stageRef} originalFilename={originalFilename} />
+      <Header onReplaceImage={handleUpload} />
 
       <div style={{ flex: 1, display: 'flex', flexDirection: isMobile ? 'column' : 'row', overflow: 'hidden', minHeight: 0 }}>
         <main
@@ -135,7 +138,7 @@ function EditorApp() {
         >
           <AnimatePresence mode="wait">
             {!hasImage ? (
-              <UploadArea key="upload" onUpload={handleUpload} />
+              <UploadArea key="upload" onUpload={handleUpload} importedTemplateFromLinkName={importedTemplateFromLinkName} />
             ) : (
               <motion.div
                 key="canvas"

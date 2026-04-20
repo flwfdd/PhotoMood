@@ -16,11 +16,11 @@ export const darkProTemplate: TemplateDefinition = {
     {
       type: 'text',
       id: 'dark-brand',
-      content: '{{exif.make}}',
+      content: '{{make}}',
       style: {
-        fontFamily: 'Instrument Sans',
+        fontFamily: 'Inter',
         fontSize: 0.014,
-        fontWeight: 600,
+        fontWeight: 700,
         color: { type: 'fixed', value: '#C15F3C', opacity: 1 },
         letterSpacing: 0.15,
         lineHeight: 1.4,
@@ -32,11 +32,11 @@ export const darkProTemplate: TemplateDefinition = {
     {
       type: 'text',
       id: 'dark-model',
-      content: '{{exif.model}}  |  {{exif.focalLength}}  {{exif.fNumber}}  {{exif.shutterSpeed}}  {{exif.iso}}',
+      content: '{{model}}  |  {{focalLength}}  {{fNumber}}  {{exposureTime}}  {{iso}}',
       style: {
-        fontFamily: 'JetBrains Mono',
+        fontFamily: 'Space Mono',
         fontSize: 0.02,
-        fontWeight: 400,
+        fontWeight: 300,
         color: { type: 'fixed', value: '#F4F3EE', opacity: 0.8 },
         letterSpacing: 0.04,
         lineHeight: 1.4,
@@ -48,11 +48,11 @@ export const darkProTemplate: TemplateDefinition = {
     {
       type: 'text',
       id: 'dark-date-location',
-      content: '{{exif.date}}  {{exif.locationName}}',
+      content: '{{date}}  {{locationName}}',
       style: {
-        fontFamily: 'JetBrains Mono',
+        fontFamily: 'Space Mono',
         fontSize: 0.016,
-        fontWeight: 400,
+        fontWeight: 300,
         color: { type: 'fixed', value: '#F4F3EE', opacity: 0.45 },
         letterSpacing: 0.04,
         lineHeight: 1.4,
