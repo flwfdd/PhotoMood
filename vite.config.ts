@@ -4,6 +4,8 @@ import babel from '@rolldown/plugin-babel'
 import tailwindcss from '@tailwindcss/vite'
 import { VitePWA } from 'vite-plugin-pwa'
 
+import { cloudflare } from "@cloudflare/vite-plugin";
+
 export default defineConfig({
   plugins: [
     tailwindcss(),
@@ -53,5 +55,6 @@ export default defineConfig({
         ],
       },
     }),
+    cloudflare()
   ],
 })
