@@ -62,7 +62,7 @@ export function formatFocalLength(focalLength: number): string {
 }
 
 export function formatAperture(fNumber: number): string {
-  return `f/${fNumber}`
+  return `f/${fNumber.toFixed(1)}`
 }
 
 export function formatISO(iso: number): string {
