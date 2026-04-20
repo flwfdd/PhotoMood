@@ -17,7 +17,7 @@ export const minimalTemplate: TemplateDefinition = {
     {
       type: 'text',
       id: 'minimal-camera',
-      content: 'Something',
+      content: 'Hello World',
       style: {
         blendMode: 'overlay',
         fontFamily: 'Special Elite',
